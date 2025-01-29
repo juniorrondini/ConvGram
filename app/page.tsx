@@ -8,10 +8,8 @@ const HomePage = () => {
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black">
       {/* Navigation */}
       <nav className="flex justify-between items-center p-6">
-        <div className="text-white text-2xl font-bold">MessengerApp</div>
-        <button className="px-6 py-2 bg-white text-black rounded-lg font-medium hover:bg-gray-100 transition-colors">
-          Download App
-        </button>
+        <div className="text-white text-2xl font-bold">Convgram</div>
+        
       </nav>
 
       {/* Hero Section */}
