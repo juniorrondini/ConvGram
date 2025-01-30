@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { socketClient } from "@/lib/socket-client"
 import { GifPicker } from "./gif-picker"
 
 interface Message {
@@ -34,56 +33,6 @@ export function ChatWindow({ chatId, recipientName, recipientAvatar }: ChatWindo
   const [showGifPicker, setShowGifPicker] = useState(false)
   const session = useSession()
   const scrollRef = useRef<HTMLDivElement>(null)
-  const [socket, setSocket] = useState(socketClient.getSocket())
-
-  useEffect(() => {
-    // Ensure the socket is connected when the component mounts
-    socketClient.connect()
-    setSocket(socketClient.getSocket())
-
-    return () => {
-      // Disconnect the socket when the component unmounts
-      socketClient.disconnect()
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!socket || !chatId) return
-
-    const handleConnect = () => {
-      console.log("Socket connected successfully")
-      socket.emit("join-chat", chatId)
-    }
-
-    const handleDisconnect = (reason: string) => {
-      console.log("Socket disconnected:", reason)
-    }
-
-    const handleNewMessage = (message: Message) => {
-      console.log("New message received:", message)
-      setMessages((prev) => [...prev, message])
-      scrollToBottom()
-    }
-
-    const handleTyping = (username: string) => {
-      setIsTyping(true)
-      const timer = setTimeout(() => setIsTyping(false), 1000)
-      return () => clearTimeout(timer)
-    }
-
-    socket.on("connect", handleConnect)
-    socket.on("disconnect", handleDisconnect)
-    socket.on("new-message", handleNewMessage)
-    socket.on("user-typing", handleTyping)
-
-    return () => {
-      socket.off("connect", handleConnect)
-      socket.off("disconnect", handleDisconnect)
-      socket.off("new-message", handleNewMessage)
-      socket.off("user-typing", handleTyping)
-      socket.emit("leave-chat", chatId)
-    }
-  }, [socket, chatId])
 
   const scrollToBottom = () => {
     if (scrollRef.current) {
@@ -92,63 +41,9 @@ export function ChatWindow({ chatId, recipientName, recipientAvatar }: ChatWindo
   }
 
   const sendMessage = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if ((!newMessage.trim() && !showGifPicker) || !socket || !session?.user) return
 
-    const message: Message = {
-      id: Date.now().toString(),
-      content: newMessage,
-      senderId: session.user.id,
-      senderName: session.user.email || "Anonymous",
-      chatId,
-      createdAt: new Date().toISOString(),
-      type: "text",
-    }
-
-    try {
-      socket.emit("send-message", message, (error: any) => {
-        if (error) {
-          console.error("Error sending message:", error)
-        } else {
-          setMessages((prev) => [...prev, message])
-          setNewMessage("")
-          scrollToBottom()
-        }
-      })
-    } catch (error) {
-      console.error("Failed to send message:", error)
-    }
   }
 
-  const handleTyping = () => {
-    if (!socket || !session?.user) return
-    socket.emit("typing", { chatId, username: session.user.email })
-  }
-
-  const handleSelectGif = (gifUrl: string) => {
-    if (!socket || !session?.user) return
-
-    const message: Message = {
-      id: Date.now().toString(),
-      content: gifUrl,
-      senderId: session.user.id,
-      senderName: session.user.email || "Anonymous",
-      chatId,
-      createdAt: new Date().toISOString(),
-      type: "gif",
-    }
-
-    socket.emit("send-message", message, (error: any) => {
-      if (error) {
-        console.error("Error sending GIF:", error)
-      } else {
-        setMessages((prev) => [...prev, message])
-        scrollToBottom()
-      }
-    })
-
-    setShowGifPicker(false)
-  }
 
   return (
     <div className="flex flex-1 flex-col h-[100dvh]">
@@ -199,14 +94,14 @@ export function ChatWindow({ chatId, recipientName, recipientAvatar }: ChatWindo
           <Input
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault()
-                sendMessage(e)
-              } else {
-                handleTyping()
-              }
-            }}
+            // onKeyDown={(e) => {
+            //   if (e.key === "Enter" && !e.shiftKey) {
+            //     e.preventDefault()
+            //     sendMessage(e)
+            //   } else {
+            //     handleTyping()
+            //   }
+            // }}
             placeholder="Type a message..."
             className="flex-1"
           />
@@ -217,7 +112,7 @@ export function ChatWindow({ chatId, recipientName, recipientAvatar }: ChatWindo
         </div>
       </form>
 
-      {showGifPicker && <GifPicker onSelectGif={handleSelectGif} onClose={() => setShowGifPicker(false)} />}
+      {/* {showGifPicker && <GifPicker onSelectGif={handleSelectGif} onClose={() => setShowGifPicker(false)} />} */}
     </div>
   )
 }
