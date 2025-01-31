@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -20,9 +20,10 @@ const LoginPage = () => {
         email: email,
         password: password,
       });
-
       if (error) throw error;
       console.log('Signup successful:', data);
+
+      
       
     } catch (error: any) {
       setError(error.message);
