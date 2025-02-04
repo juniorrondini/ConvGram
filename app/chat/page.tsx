@@ -103,22 +103,25 @@ export default function ChatPage() {
       const { data: recepientUser, error: userError } = await supabase
         .from("profiles")
         .select("*")
-        .eq("username", newUserEmail)
+        .eq("email", newUserEmail)
         .single();
 
       if (userError || !recepientUser) {
         console.error("User not found:", userError);
         alert("User not found!");
         return;
+        
       }
-
+      console.log("capeta", recepientUser );
       // 2️⃣ Cria um novo chat com o usuário encontrado
+      const usuarioLogado = JSON.parse(user).user;
+      console.log( usuarioLogado );
       const { data: newChat, error: chatError } = await supabase
         .from("chats")
         .insert([
           {
-            user_id: user?.id, // Ajuste para o ID real do usuário logado
-            recipient_id: recepientUser.id,
+            recipient_id: recepientUser.id, // Ajuste para o ID real do usuário logado
+            user_id: usuarioLogado.id,
             last_message_at: new Date().toISOString(),
           },
         ])
