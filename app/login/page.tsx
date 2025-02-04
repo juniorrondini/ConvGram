@@ -1,8 +1,8 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabaseClient';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -10,9 +10,9 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const router = useRouter()
+  const router = useRouter();
 
-  async function signUpNewUser(email: string, password: string) {
+  async function signInUser(email: string, password: string) {
     try {
       setIsLoading(true);
       setError('');
@@ -20,11 +20,12 @@ const LoginPage = () => {
         email: email,
         password: password,
       });
-      if (error) throw error;
-      console.log('Signup successful:', data);
-
-      
-      
+      if (error) {
+        throw error;
+      }
+      console.log('Login successful:', data);
+      // Redireciona para o chat somente se não ocorrer erro
+      router.push('/chat');
     } catch (error: any) {
       setError(error.message);
     } finally {
@@ -34,8 +35,7 @@ const LoginPage = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    signUpNewUser(email, password);
-    router.push('/chat')
+    signInUser(email, password);
   };
 
   return (
@@ -116,7 +116,7 @@ const LoginPage = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-2.5 px-4 border font-bold border-transparent text-sm  rounded-lg text-zinc-700 bg-gradient-to-br from-gray-50 to-gray-200 hover:from-gray-100 hover:to-gray-400"
+              className="group relative w-full flex justify-center py-2.5 px-4 border font-bold border-transparent text-sm rounded-lg text-zinc-700 bg-gradient-to-br from-gray-50 to-gray-200 hover:from-gray-100 hover:to-gray-400"
             >
               {isLoading ? "Carregando..." : "Entrar"}
             </button>
@@ -141,7 +141,6 @@ const LoginPage = () => {
               </a>
             </div>
           </div>
-
         </form>
       </div>
     </div>

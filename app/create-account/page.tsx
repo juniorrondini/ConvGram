@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabaseClient';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 
@@ -8,22 +9,39 @@ const CreateAccountPage = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [feedbackMessage, setFeedbackMessage] = useState('');
+  const [isError, setIsError] = useState(false);
+  const router = useRouter();
 
   async function signUpNewUser(email: string, password: string) {
     try {
       setIsLoading(true);
-      setError('');
+      setFeedbackMessage('');
+      setIsError(false);
+
+      // Tenta criar a conta usando supabase.auth.signUp.
       const { data, error } = await supabase.auth.signUp({
         email: email,
         password: password,
       });
 
-      if (error) throw error;
-      console.log('Signup successful:', data);
-      
+      if (error) {
+        // Se ocorrer um erro (como email duplicado), lança o erro
+        throw error;
+      }
+
+      // Se não houve erro, exibe mensagem de sucesso.
+      setFeedbackMessage(
+        'Conta criada com sucesso! Verifique seu email para confirmar o cadastro. Redirecionando para a Home...'
+      );
+
+      // Redireciona após 2 segundos para a Home (ou ajuste a rota conforme necessário)
+      setTimeout(() => {
+        router.push('/');
+      }, 2000);
     } catch (error: any) {
-      setError(error.message);
+      setIsError(true);
+      setFeedbackMessage(error.message);
     } finally {
       setIsLoading(false);
     }
@@ -39,10 +57,10 @@ const CreateAccountPage = () => {
       <div className="max-w-md w-full space-y-8 p-10 bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-800">
         <div className="text-center">
           <h2 className="mt-6 text-3xl font-bold bg-gradient-to-b from-gray-50 to-gray-400 bg-clip-text text-transparent">
-            Bem-vindo de volta
+            Crie sua Conta
           </h2>
           <p className="mt-2 text-sm text-zinc-400">
-            Entre com sua conta para continuar
+            Preencha os campos abaixo para criar sua conta.
           </p>
         </div>
 
@@ -102,9 +120,13 @@ const CreateAccountPage = () => {
             </div>
           </div>
 
-          {error && (
-            <div className="text-red-400 text-sm mt-2 bg-red-900/30 p-3 rounded-lg">
-              {error}
+          {feedbackMessage && (
+            <div
+              className={`text-sm mt-2 p-3 rounded-lg ${
+                isError ? 'text-red-400 bg-red-900/30' : 'text-green-400 bg-green-900/30'
+              }`}
+            >
+              {feedbackMessage}
             </div>
           )}
 
@@ -112,32 +134,11 @@ const CreateAccountPage = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-2.5 px-4 border font-bold border-transparent text-sm  rounded-lg text-zinc-700 bg-gradient-to-br from-gray-50 to-gray-200 hover:from-gray-100 hover:to-gray-400"
+              className="group relative w-full flex justify-center py-2.5 px-4 border font-bold border-transparent text-sm rounded-lg text-zinc-700 bg-gradient-to-br from-gray-50 to-gray-200 hover:from-gray-100 hover:to-gray-400"
             >
-              {isLoading ? "Carregando..." : "Entrar"}
+              {isLoading ? "Carregando..." : "Criar Conta"}
             </button>
           </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <input
-                id="remember-me"
-                name="remember-me"
-                type="checkbox"
-                className="h-4 w-4 bg-zinc-800 border-zinc-700 rounded text-blue-500 focus:ring-blue-500"
-              />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-zinc-300">
-                Lembrar-me
-              </label>
-            </div>
-
-            <div className="text-sm">
-              <a href="#" className="font-medium text-blue-400 hover:text-blue-300 transition-colors">
-                Esqueceu sua senha?
-              </a>
-            </div>
-          </div>
-
         </form>
       </div>
     </div>
@@ -145,3 +146,4 @@ const CreateAccountPage = () => {
 };
 
 export default CreateAccountPage;
+  
